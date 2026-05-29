@@ -1,26 +1,35 @@
-MirrorFS
+# MirrorFS
+
 Bagas adalah seorang arsiparis digital yang sangat rapi. Dia memiliki satu folder berisi ratusan file laporan kerja, namun dia menyadari ada dua masalah:
 
-Nama file-filenya tidak seragam, misalnya laporan_keuangan_final_v2_REVISI.txt
-Rekan kerjanya sering tidak sengaja mengubah atau menghapus file laporan tersebut
-Sebagai mahasiswa Sistem Operasi, Bagas memutuskan untuk membuat MirrorFS, sebuah FUSE filesystem yang "mencerminkan" folder laporannya dengan tampilan yang lebih rapi dan aman.
+1. Nama file-filenya tidak seragam, misalnya `laporan_keuangan_final_v2_REVISI.txt`
+2. Rekan kerjanya sering tidak sengaja mengubah atau menghapus file laporan tersebut
 
-Deskripsi Tugas
-Buatlah program FUSE bernama mirrorfs.c yang di-mount pada /mnt/mirror dan membaca dari source directory /home/bagas/reports. Filesystem ini harus menerapkan beberapa perilaku khusus.
+Sebagai mahasiswa Sistem Operasi, Bagas memutuskan untuk membuat **MirrorFS**, sebuah FUSE filesystem yang "mencerminkan" folder laporannya dengan tampilan yang lebih rapi dan aman.
 
-Catatan: Setup awal sudah disiapkan dalam setup.sh. Cukup jalankan sekali sebelum mengerjakan.
+## Deskripsi Tugas
 
-a. Mirroring Source Directory
-FUSE filesystem harus menampilkan isi dari /home/bagas/reports secara langsung. Ketika user menjalankan ls /mnt/mirror, harus menampilkan file yang sama dengan yang ada di source directory.
+Buatlah program FUSE bernama `mirrorfs.c` yang di-mount pada `/mnt/mirror` dan membaca dari source directory `/home/bagas/reports`. Filesystem ini harus menerapkan beberapa perilaku khusus.
 
+> **Catatan:** Setup awal sudah disiapkan dalam `setup.sh`. Cukup jalankan sekali sebelum mengerjakan.
+
+### a. Mirroring Source Directory
+
+FUSE filesystem harus menampilkan isi dari `/home/bagas/reports` secara langsung. Ketika user menjalankan `ls /mnt/mirror`, harus menampilkan file yang sama dengan yang ada di source directory.
+
+```bash
 $ ls /home/bagas/reports
 laporan_jan.txt  laporan_feb.txt  laporan_mar.txt  data.csv
 
 $ ls /mnt/mirror
 laporan_jan.txt  laporan_feb.txt  laporan_mar.txt  data.csv
-b. Read-Only Filesystem
-Seluruh filesystem bersifat read-only. Semua operasi write harus gagal dan mengembalikan error EROFS.
+```
 
+### b. Read-Only Filesystem
+
+Seluruh filesystem bersifat **read-only**. Semua operasi write harus gagal dan mengembalikan error `EROFS`.
+
+```bash
 $ touch /mnt/mirror/file_baru.txt
 touch: cannot touch '/mnt/mirror/file_baru.txt': Read-only file system
 
@@ -29,24 +38,36 @@ rm: cannot remove '/mnt/mirror/laporan_jan.txt': Read-only file system
 
 $ echo "test" > /mnt/mirror/laporan_jan.txt
 bash: /mnt/mirror/laporan_jan.txt: Read-only file system
-c. Prefix Nama File
-Semua nama file di /mnt/mirror harus memiliki prefix LAPORAN_. Namun ketika dibaca, tetap harus mengarah ke file aslinya di source directory.
+```
 
+### c. Prefix Nama File
+
+Semua nama file di `/mnt/mirror` harus memiliki prefix `LAPORAN_`. Namun ketika dibaca, tetap harus mengarah ke file aslinya di source directory.
+
+```bash
 $ ls /mnt/mirror
 LAPORAN_laporan_jan.txt  LAPORAN_laporan_feb.txt  LAPORAN_data.csv
 
 $ cat /mnt/mirror/LAPORAN_laporan_jan.txt
 Laporan Bulan Januari     ← isi dari file asli laporan_jan.txt
-d. Filter Ekstensi
-MirrorFS hanya menampilkan file berekstensi .txt. File dengan ekstensi lain tidak boleh muncul maupun bisa diakses.
+```
 
+### d. Filter Ekstensi
+
+MirrorFS hanya menampilkan file berekstensi `.txt`. File dengan ekstensi lain tidak boleh muncul maupun bisa diakses.
+
+```bash
 $ ls /home/bagas/reports
 laporan_jan.txt  laporan_feb.txt  data.csv  summary.pdf
 
 $ ls /mnt/mirror
 LAPORAN_laporan_jan.txt  LAPORAN_laporan_feb.txt
 # data.csv dan summary.pdf tidak muncul
-Contoh Skenario Lengkap
+```
+
+## Contoh Skenario Lengkap
+
+```bash
 $ ls /home/bagas/reports
 laporan_jan.txt  laporan_feb.txt  laporan_mar.txt  data.csv  summary.pdf
 
@@ -61,15 +82,26 @@ touch: cannot touch '/mnt/mirror/test.txt': Read-only file system
 
 $ cat /mnt/mirror/LAPORAN_data.csv
 cat: /mnt/mirror/LAPORAN_data.csv: No such file or directory
-Notes
-Source directory: /home/bagas/reports
-Mount point: /mnt/mirror
-Jalankan setup.sh terlebih dahulu
-Debugging: ./mirrorfs -f /mnt/mirror
-Compile: gcc -Wall $(pkg-config fuse --cflags) mirrorfs.c -o mirrorfs $(pkg-config fuse --libs)
-Unmount: fusermount -u /mnt/mirror
-KUNCI JAWABAN
-1. setup.sh — Persiapan Lingkungan
+```
+
+## Notes
+
+- Source directory: `/home/bagas/reports`
+- Mount point: `/mnt/mirror`
+- Jalankan `setup.sh` terlebih dahulu
+- Debugging: `./mirrorfs -f /mnt/mirror`
+- Compile: `gcc -Wall $(pkg-config fuse --cflags) mirrorfs.c -o mirrorfs $(pkg-config fuse --libs)`
+- Unmount: `fusermount -u /mnt/mirror`
+
+---
+
+---
+
+# KUNCI JAWABAN
+
+## 1. `setup.sh` — Persiapan Lingkungan
+
+```bash
 #!/bin/bash
 #setup.sh
 
@@ -106,7 +138,11 @@ echo "Langkah selanjutnya:"
 echo "  1. gcc -Wall \$(pkg-config fuse --cflags) mirrorfs.c -o mirrorfs \$(pkg-config fuse --libs)"
 echo "  2. ./mirrorfs /mnt/mirror"
 echo "  3. bash test.sh"
-2. mirrorfs.c — Source Code FUSE
+```
+
+## 2. `mirrorfs.c` — Source Code FUSE
+
+```c
 #define FUSE_USE_VERSION 28
 
 #include <fuse.h>
@@ -277,7 +313,11 @@ int main(int argc, char *argv[]) {
     umask(0);
     return fuse_main(argc, argv, &mfs_oper, NULL);
 }
-3. test.sh — Script Pengujian
+```
+
+## 3. `test.sh` — Script Pengujian
+
+```bash
 #!/bin/bash
 #test.sh
 #Jalankan setelah mirrorfs berjalan di terminal lain
@@ -366,9 +406,13 @@ echo ""
 echo "============================================"
 echo " HASIL: $PASS PASS, $FAIL FAIL"
 echo "============================================"
-4. Cara Menjalankan (x86 dan ARM64)
-Script dan source code ini tidak perlu diubah untuk x86 maupun ARM64. Perbedaannya hanya pada perintah compile karena FUSE library dikompilasi sesuai arsitektur yang terdeteksi otomatis oleh pkg-config.
+```
 
+## 4. Cara Menjalankan (x86 dan ARM64)
+
+Script dan source code ini **tidak perlu diubah** untuk x86 maupun ARM64. Perbedaannya hanya pada perintah compile karena FUSE library dikompilasi sesuai arsitektur yang terdeteksi otomatis oleh `pkg-config`.
+
+```bash
 #Step 1: Setup (sekali saja)
 sudo bash setup.sh
 
@@ -381,15 +425,21 @@ gcc -Wall $(pkg-config fuse --cflags) mirrorfs.c -o mirrorfs $(pkg-config fuse -
 
 #Step 4: Jalankan test (Terminal 2, atau pakai & untuk background)
 bash test.sh
-Catatan perbedaan x86 vs ARM64: Tidak ada perubahan apapun pada source code. Perbedaan hanya internal di level compiler dan library yang dihandle otomatis oleh sistem.
+```
 
-Aspek	x86_64	ARM64
-Source code mirrorfs.c	Sama	Sama
-setup.sh	Sama	Sama
-test.sh	Sama	Sama
-Perintah compile	Sama	Sama
-Output binary	ELF 64-bit x86-64	ELF 64-bit ARM aarch64
-Yang berbeda	—	Hanya binary hasil compile
-Error	Arti	Kapan digunakan di MirrorFS
-ENOENT	No such file or directory	File non-.txt atau path tanpa prefix
-EROFS	Read-only file system	Semua percobaan write (touch, rm, mkdir)
+> **Catatan perbedaan x86 vs ARM64:**
+> Tidak ada perubahan apapun pada source code. Perbedaan hanya internal di level compiler dan library yang dihandle otomatis oleh sistem.
+
+| Aspek | x86_64 | ARM64 |
+|---|---|---|
+| Source code `mirrorfs.c` | Sama | Sama |
+| `setup.sh` | Sama | Sama |
+| `test.sh` | Sama | Sama |
+| Perintah compile | Sama | Sama |
+| Output binary | `ELF 64-bit x86-64` | `ELF 64-bit ARM aarch64` |
+| Yang berbeda | — | Hanya binary hasil compile |
+
+| Error | Arti | Kapan digunakan di MirrorFS |
+|---|---|---|
+| `ENOENT` | No such file or directory | File non-.txt atau path tanpa prefix |
+| `EROFS` | Read-only file system | Semua percobaan write (touch, rm, mkdir) |
